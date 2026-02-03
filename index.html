@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <title>賞味期限 × レシピ管理</title>
+   <style>
+     body {
+       font-family: sans-serif;
+       max-width: 500px;
+       margin: 30px auto;
+     }
+     input, button {
+       width: 100%;
+       padding: 8px;
+       margin: 5px 0;
+     }
+     .item {
+       border: 1px solid #ccc;
+       padding: 10px;
+       margin-top: 10px;
+     }
+     .warning {
+       color: red;
+       font-weight: bold;
+     }
+   </style>
+</head>
+<body>
+
+<h1>賞味期限管理アプリ</h1>
+<p>大学生向け：余った食材を無駄にしない</p>
+
+<input type="text" id="food" placeholder="食材名（例：卵）">
+<input type="date" id="date">
+<button onclick="addItem()">追加</button>
+
+<h2>登録済み食材</h2>
+<div id="list"></div>
+
+<script>
+const recipes = {
+   卵: "卵かけご飯 / 目玉焼き",
+   ご飯: "チャーハン / おにぎり",
+   食パン: "トースト / フレンチトースト",
+   パスタ: "ペペロンチーノ",
+   キャベツ: "炒め物 / 味噌汁"
+};
+
+let items = JSON.parse(localStorage.getItem("items")) || [];
+
+function addItem() {
+   const food = document.getElementById("food").value;
+   const date = document.getElementById("date").value;
+   if (!food || !date) return;
+
+   items.push({ food, date });
+   localStorage.setItem("items", JSON.stringify(items));
+   document.getElementById("food").value = "";
+   document.getElementById("date").value = "";
+   render();
+}
+
+function render() {
+   const list = document.getElementById("list");
+   list.innerHTML = "";
+
+   const today = new Date();
+
+   items.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+   items.forEach(item => {
+     const limit = new Date(item.date);
+     const diff = Math.floor((limit - today) / (1000 * 60 * 60 * 24));
+
+     const div = document.createElement("div");
+     div.className = "item";
+
+     const recipe = recipes[item.food] || "簡単炒め / アレンジ自由";
+
+     div.innerHTML = `
+       <strong>${item.food}</strong><br>
+       賞味期限：${item.date}<br>
+       残り：${diff} 日<br>
+       <span class="${diff <= 2 ? "warning" : ""}">
+         おすすめレシピ：${recipe}
+       </span>
+     `;
+     list.appendChild(div);
+   });
+}
+
+render();
+</script>
+
+</body>
+</html>
