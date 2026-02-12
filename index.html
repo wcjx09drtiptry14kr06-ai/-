@@ -1,96 +1,156 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-   <meta charset="UTF-8">
-   <title>賞味期限 × レシピ管理</title>
-   <style>
-     body {
-       font-family: sans-serif;
-       max-width: 500px;
-       margin: 30px auto;
-     }
-     input, button {
-       width: 100%;
-       padding: 8px;
-       margin: 5px 0;
-     }
-     .item {
-       border: 1px solid #ccc;
-       padding: 10px;
-       margin-top: 10px;
-     }
-     .warning {
-       color: red;
-       font-weight: bold;
-     }
-   </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>消費期限管理アプリ</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input, button {
+    padding: 8px;
+    margin: 5px 0;
+}
+
+button {
+    cursor: pointer;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.expired {
+    background-color: #ffcccc;
+}
+
+.warning {
+    background-color: #fff3cd;
+}
+
+.safe {
+    background-color: #d4edda;
+}
+</style>
 </head>
+
 <body>
 
-<h1>賞味期限管理アプリ</h1>
-<p>大学生向け：余った食材を無駄にしない</p>
+<div class="container">
+    <h1>🍎 消費期限管理アプリ</h1>
 
-<input type="text" id="food" placeholder="食材名（例：卵）">
-<input type="date" id="date">
-<button onclick="addItem()">追加</button>
+    <input type="text" id="itemName" placeholder="食材名">
+    <input type="date" id="expiryDate">
+    <button onclick="addItem()">追加</button>
+    <button onclick="saveItems()">保存</button>
+    <button onclick="clearItems()">全削除</button>
 
-<h2>登録済み食材</h2>
-<div id="list"></div>
+    <ul id="itemList"></ul>
+</div>
 
 <script>
-const recipes = {
-   卵: "卵かけご飯 / 目玉焼き",
-   ご飯: "チャーハン / おにぎり",
-   食パン: "トースト / フレンチトースト",
-   パスタ: "ペペロンチーノ",
-   キャベツ: "炒め物 / 味噌汁"
-};
+let items = JSON.parse(localStorage.getItem("foodItems")) || [];
 
-let items = JSON.parse(localStorage.getItem("items")) || [];
+function renderItems() {
+    const list = document.getElementById("itemList");
+    list.innerHTML = "";
+
+    const today = new Date();
+
+    items.forEach((item, index) => {
+        const li = document.createElement("li");
+        const expiry = new Date(item.date);
+        const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) {
+            li.classList.add("expired");
+        } else if (diffDays <= 3) {
+            li.classList.add("warning");
+        } else {
+            li.classList.add("safe");
+        }
+
+        li.innerHTML = `
+            <span>${item.name} - ${item.date} (あと ${diffDays} 日)</span>
+            <button onclick="deleteItem(${index})">削除</button>
+        `;
+
+        list.appendChild(li);
+    });
+}
 
 function addItem() {
-   const food = document.getElementById("food").value;
-   const date = document.getElementById("date").value;
-   if (!food || !date) return;
+    const name = document.getElementById("itemName").value;
+    const date = document.getElementById("expiryDate").value;
 
-   items.push({ food, date });
-   localStorage.setItem("items", JSON.stringify(items));
-   document.getElementById("food").value = "";
-   document.getElementById("date").value = "";
-   render();
+    if (!name || !date) {
+        alert("食材名と日付を入力してください。");
+        return;
+    }
+
+    items.push({ name, date });
+    renderItems();
+
+    document.getElementById("itemName").value = "";
+    document.getElementById("expiryDate").value = "";
 }
 
-function render() {
-   const list = document.getElementById("list");
-   list.innerHTML = "";
-
-   const today = new Date();
-
-   items.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-   items.forEach(item => {
-     const limit = new Date(item.date);
-     const diff = Math.floor((limit - today) / (1000 * 60 * 60 * 24));
-
-     const div = document.createElement("div");
-     div.className = "item";
-
-     const recipe = recipes[item.food] || "簡単炒め / アレンジ自由";
-
-     div.innerHTML = `
-       <strong>${item.food}</strong><br>
-       賞味期限：${item.date}<br>
-       残り：${diff} 日<br>
-       <span class="${diff <= 2 ? "warning" : ""}">
-         おすすめレシピ：${recipe}
-       </span>
-     `;
-     list.appendChild(div);
-   });
+function deleteItem(index) {
+    items.splice(index, 1);
+    renderItems();
+    saveItems();
 }
 
-render();
+function saveItems() {
+    localStorage.setItem("foodItems", JSON.stringify(items));
+    alert("保存しました！");
+}
+
+function clearItems() {
+    if (confirm("本当に全て削除しますか？")) {
+        items = [];
+        localStorage.removeItem("foodItems");
+        renderItems();
+    }
+}
+
+renderItems();
 </script>
 
 </body>
 </html>
+
+       
+
+
+
+
+
