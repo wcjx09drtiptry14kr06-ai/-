@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>消費期限管理アプリ</title>
+<title>消費期限管理＋レシピ提案アプリ</title>
 
 <style>
 body {
@@ -17,7 +17,7 @@ h1 {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 700px;
     margin: auto;
     background: white;
     padding: 20px;
@@ -48,16 +48,15 @@ li {
     align-items: center;
 }
 
-.expired {
-    background-color: #ffcccc;
-}
+.expired { background-color: #ffcccc; }
+.warning { background-color: #fff3cd; }
+.safe { background-color: #d4edda; }
 
-.warning {
-    background-color: #fff3cd;
-}
-
-.safe {
-    background-color: #d4edda;
+#recipeArea {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
 }
 </style>
 </head>
@@ -65,7 +64,7 @@ li {
 <body>
 
 <div class="container">
-    <h1>🍎 消費期限管理アプリ</h1>
+    <h1>🍎 消費期限管理＋レシピ提案</h1>
 
     <input type="text" id="itemName" placeholder="食材名">
     <input type="date" id="expiryDate">
@@ -74,6 +73,16 @@ li {
     <button onclick="clearItems()">全削除</button>
 
     <ul id="itemList"></ul>
+
+    <hr>
+
+    <button onclick="generateRecipe()">🍳 レシピを考える</button>
+
+    <div id="recipeArea">
+        <h3>おすすめレシピ</h3>
+        <p id="recipeText">ここにレシピが表示されます。</p>
+    </div>
+
 </div>
 
 <script>
@@ -142,15 +151,29 @@ function clearItems() {
     }
 }
 
+function generateRecipe() {
+    if (items.length === 0) {
+        document.getElementById("recipeText").innerText = "食材が登録されていません。";
+        return;
+    }
+
+    const ingredientList = items.map(item => item.name);
+
+    const recipeTemplates = [
+        `${ingredientList.join("、")}を使った炒め物。塩コショウでシンプルに味付けし、最後にごま油を少し加えると風味アップ。`,
+        `${ingredientList.join("、")}を使ったスープ。コンソメで煮込み、最後に卵を加えると優しい味わいになります。`,
+        `${ingredientList.join("、")}のオムレツ。具材を細かく切って卵と混ぜて焼くだけの簡単レシピ。`,
+        `${ingredientList.join("、")}を使ったチャーハン。ご飯と一緒に炒めて醤油で味付け。`,
+        `${ingredientList.join("、")}の和風パスタ。バターと醤油で炒めて完成。`
+    ];
+
+    const randomRecipe = recipeTemplates[Math.floor(Math.random() * recipeTemplates.length)];
+
+    document.getElementById("recipeText").innerText = randomRecipe;
+}
+
 renderItems();
 </script>
 
 </body>
 </html>
-
-       
-
-
-
-
-
